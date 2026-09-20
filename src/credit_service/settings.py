@@ -9,7 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Runtime settings; environment variables take precedence over defaults."""
 
-    model_path: Path = Path("artifacts/iris_pipeline.joblib")
+    model_path: Path = Path("artifacts/credit_scoring_pipeline.joblib")
     database_url: str | None = None
     log_level: str = "INFO"
 

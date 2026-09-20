@@ -1,4 +1,4 @@
-"""FastAPI application for the Iris classifier."""
+"""FastAPI application for Home Credit default-risk scoring."""
 
 import logging
 import time
@@ -9,10 +9,10 @@ from contextlib import asynccontextmanager
 from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
-from iris_service.database import PredictionLogStore
-from iris_service.model import ModelBundle, load_model_bundle
-from iris_service.schemas import HealthResponse, IrisFeatures, PredictionResponse
-from iris_service.settings import get_settings
+from credit_service.database import PredictionLogStore
+from credit_service.model import ModelBundle, load_model_bundle
+from credit_service.schemas import CreditApplication, HealthResponse, PredictionResponse
+from credit_service.settings import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +40,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title="Iris classification service",
-    version="1.0.0",
-    description="Predicts an Iris species from four flower measurements.",
+    title="Home Credit default-risk service",
+    version="2.0.0",
+    description="Predicts the probability that a credit application will default.",
     lifespan=lifespan,
 )
 
@@ -86,16 +86,19 @@ def log_prediction_safely(log_store: PredictionLogStore, **values: object) -> No
 
 @app.post("/v1/predict", response_model=PredictionResponse)
 def predict(
-    features: IrisFeatures,
+    application: CreditApplication,
     background_tasks: BackgroundTasks,
     x_request_id: str | None = Header(default=None),
 ) -> PredictionResponse:
     model = get_model()
     request_id = x_request_id or str(uuid.uuid4())
-    values = features.model_dump()
+    values = application.features
 
     started_at = time.perf_counter()
-    prediction = model.predict(values)
+    try:
+        prediction, default_probability = model.predict(values)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     latency_ms = round((time.perf_counter() - started_at) * 1000, 3)
 
     log_store: PredictionLogStore | None = app.state.log_store
@@ -113,6 +116,7 @@ def predict(
 
     return PredictionResponse(
         prediction=prediction,
+        default_probability=default_probability,
         model_version=model.version,
         request_id=request_id,
         latency_ms=latency_ms,

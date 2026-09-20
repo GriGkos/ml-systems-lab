@@ -1,7 +1,7 @@
 [project]
-name = "iris-service"
-version = "1.0.0"
-description = "FastAPI service for Iris species classification"
+name = "credit-scoring-service"
+version = "2.0.0"
+description = "FastAPI service for Home Credit default-risk scoring"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [

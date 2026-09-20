@@ -1,17 +1,18 @@
 $ErrorActionPreference = 'Stop'
 
-$image = 'iris-service:1.0'
-$payload = '{"sepal_length_cm":5.1,"sepal_width_cm":3.5,"petal_length_cm":1.4,"petal_width_cm":0.2}'
+$image = 'credit-scoring-service:2.0'
+$metadata = Get-Content -Raw artifacts/credit_scoring_metadata.json | ConvertFrom-Json
+$payload = @{ features = $metadata.example_input } | ConvertTo-Json -Depth 4 -Compress
 
 docker build -t $image .
 kind load docker-image $image --name kind
 kubectl apply -f k8s
-kubectl rollout restart deployment/iris-service
-kubectl rollout status deployment/iris-service --timeout=180s
-kubectl get pods -l app=iris-service
+kubectl rollout restart deployment/credit-scoring-service
+kubectl rollout status deployment/credit-scoring-service --timeout=180s
+kubectl get pods -l app=credit-scoring-service
 
 $portForward = Start-Job -ScriptBlock {
-    kubectl port-forward service/iris-service 8080:80
+    kubectl port-forward service/credit-scoring-service 8080:80
 }
 
 try {

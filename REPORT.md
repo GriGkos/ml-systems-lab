@@ -2,20 +2,25 @@
 
 ## Модель
 
-Сервис классифицирует вид ириса по четырём измерениям цветка: длине и ширине чашелистика,
-длине и ширине лепестка. Артефакт содержит `sklearn.pipeline.Pipeline` с нормализацией и
-классификатором, а также паспорт с версией, датой обучения, метрикой, хешем датасета,
-зависимостями и примером корректного входа.
+Сервис оценивает вероятность дефолта по анкете Home Credit Default Risk. Артефакт — единая
+`sklearn` Pipeline с детерминированными признаками заявки, заполнением пропусков, one-hot
+encoding, масштабированием и Logistic Regression. Модель обучена на 307 511 заявках без подбора
+гиперпараметров.
+
+Полная CatBoost v2 из исходного проекта требует CUDA и всех исторических таблиц, поэтому для
+сервиса выбран воспроизводимый application-only baseline с исходными фиксированными параметрами.
+Reference OOF ROC-AUC из проекта — `0.75141`.
 
 ## Выполненные проверки
 
 - `uv run pytest` — **9 passed**.
-- `docker compose up -d --build` — `/health` и `/ready` вернули `200`.
-- Compose: запрос с `request_id=compose-lecture-final-001` вернул `setosa`; строка появилась в
-  `prediction_logs` с `model_version=1.0.0` и `status_code=200`.
-- kind: Deployment `iris-service` развёрнут в двух репликах `Running`; Service использует
-  `80 → 8000`; запрос через `kubectl port-forward service/iris-service 8080:80` с
-  `request_id=k8s-lecture-final-001` вернул `setosa`.
+- Compose: запрос с `request_id=credit-compose-renamed-001` вернул `prediction=default`,
+  `default_probability=0.937867`; строка появилась в `prediction_logs` с `model_version=2.0.0`
+  и `status_code=200`.
+- kind: Deployment `credit-scoring-service` развёрнут в двух репликах `Running`; Service
+  использует `80 → 8000`; запрос через
+  `kubectl port-forward service/credit-scoring-service 8080:80` с
+  `request_id=credit-k8s-renamed-001` вернул `prediction=default`.
 
 ## Скриншоты перед сдачей
 
@@ -28,8 +33,7 @@
 
 ## Журнал проблем
 
-- Docker Desktop сначала не был запущен; после запуска `docker info` и `kind create cluster`
-  отработали успешно.
-- После установки `kind` и `k9s` PATH обновился только в новом окне PowerShell/терминала VS Code.
-- Локальный путь содержит кириллицу, поэтому для editable-установки выбран `setuptools`; команда
-  `uv sync` и импорт пакета проходят корректно.
+- Полная CatBoost v2 не обучалась: локально нет CUDA, а исходная версия требует исторические CSV
+  общим объёмом около 2.5 ГБ и рассчитана на GPU.
+- Фиксированный `saga`-solver дошёл до `max_iter=300` с предупреждением о недосходимости;
+  параметры сознательно не менялись, чтобы не подбирать гиперпараметры.

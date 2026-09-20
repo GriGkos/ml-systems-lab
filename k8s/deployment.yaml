@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: iris-service
+  name: credit-scoring-service
   labels:
-    app: iris-service
+    app: credit-scoring-service
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: iris-service
+      app: credit-scoring-service
   template:
     metadata:
       labels:
-        app: iris-service
+        app: credit-scoring-service
     spec:
       containers:
         - name: api
-          image: iris-service:1.0
+          image: credit-scoring-service:2.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
