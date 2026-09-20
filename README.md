@@ -9,6 +9,19 @@ CUDA и всех исторических CSV, поэтому для серви�
 зафиксированными параметрами и reference OOF ROC-AUC `0.75141`. Подбор гиперпараметров не
 выполняется.
 
+## Первый запуск
+
+Нужны Git, Python 3.11, Docker Desktop, `uv`, `kubectl`, kind и k9s. После клонирования:
+
+```powershell
+git clone https://github.com/GriGkos/ml-systems-lab.git
+cd ml-systems-lab
+uv sync
+```
+
+Перед запуском Docker Desktop должен быть открыт. Если `kind get clusters` не показывает
+кластер `kind`, создайте его один раз командой `kind create cluster`.
+
 ## Проверка
 
 Выполняйте команды сверху вниз из корня репозитория.
