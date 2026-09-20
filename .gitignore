@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+check_env_report.txt
+check_env.py
+*.log
+.env
+postgres_data/
+locust_results/
+dist/

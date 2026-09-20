@@ -1,0 +1,10 @@
+.git/
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+dist/
+check_env.py
+check_env_report.txt
+REPORT.md
+tests/
