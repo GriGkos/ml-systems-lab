@@ -28,6 +28,24 @@ docker compose up -d --build
 Третья команда собирает образ, загружает его в текущий kind-кластер, применяет манифесты,
 ожидает rollout и получает ответ `/v1/predict` через port-forward.
 
+## Скриншоты проверки
+
+### Тесты
+
+![Pytest: 9 passed](docs/screenshots/01-pytest.png)
+
+### Логирование в PostgreSQL
+
+![Ответ API и строка prediction_logs](docs/screenshots/02-postgres-log.png)
+
+### Kubernetes и port-forward
+
+![Две реплики Running и ответ API](docs/screenshots/03-kubernetes.png)
+
+### k9s
+
+![Поды credit-scoring-service в k9s](docs/screenshots/04-k9s.png)
+
 ## API
 
 После `docker compose up -d --build` доступны:

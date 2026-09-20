@@ -24,12 +24,15 @@ Reference OOF ROC-AUC из проекта — `0.75141`.
 
 ## Скриншоты перед сдачей
 
-Нужно вручную добавить реальные скриншоты фактического терминала и k9s:
+Фактические скриншоты проверок:
 
-1. `uv run pytest` с зелёным результатом;
-2. `SELECT` из `prediction_logs` после запроса к API;
-3. `kubectl get pods` с двумя репликами и ответ `/v1/predict` через port-forward;
-4. экран `k9s` с подами сервиса.
+![Pytest: 9 passed](docs/screenshots/01-pytest.png)
+
+![Ответ API и строка prediction_logs](docs/screenshots/02-postgres-log.png)
+
+![Две реплики Running и ответ API](docs/screenshots/03-kubernetes.png)
+
+![Поды credit-scoring-service в k9s](docs/screenshots/04-k9s.png)
 
 ## Журнал проблем
 
