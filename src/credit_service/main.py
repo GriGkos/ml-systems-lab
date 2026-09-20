@@ -92,7 +92,7 @@ def predict(
 ) -> PredictionResponse:
     model = get_model()
     request_id = x_request_id or str(uuid.uuid4())
-    values = application.features
+    values = application.model_dump()
 
     started_at = time.perf_counter()
     try:

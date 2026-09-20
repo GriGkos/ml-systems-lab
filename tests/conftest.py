@@ -18,4 +18,4 @@ def client() -> TestClient:
 def valid_payload() -> dict[str, object]:
     from credit_service.model import load_model_bundle
 
-    return {"features": load_model_bundle().metadata["example_input"]}
+    return load_model_bundle().metadata["example_input"]

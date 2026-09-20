@@ -37,10 +37,11 @@ docker compose up -d --build
 - `POST http://127.0.0.1:8000/v1/predict`
 - `GET http://127.0.0.1:8000/docs`
 
-`POST /v1/predict` принимает объект `features` с полями одной анкеты Home Credit, без `TARGET`
-и `SK_ID_CURR`. Полный пример входа хранится в `artifacts/credit_scoring_metadata.json` после
-обучения; отсутствующие известные поля обрабатываются как пропуски, а неизвестные отклоняются с
-`422`. Ответ содержит `prediction` (`default` или `no_default`) и `default_probability`.
+`POST /v1/predict` принимает поля одной анкеты Home Credit, без `TARGET` и `SK_ID_CURR`.
+OpenAPI-схема перечисляет все поля, их типы и базовые ограничения; отсутствующие известные поля
+обрабатываются как пропуски, а неизвестные отклоняются с `422`. Полный валидный пример входа
+хранится в `artifacts/credit_scoring_metadata.json`. Ответ содержит `prediction` (`default` или
+`no_default`) и `default_probability`.
 
 Проверить логи в PostgreSQL:
 
@@ -70,6 +71,7 @@ uv run uvicorn credit_service.main:app --reload
 - `artifacts/` — joblib-бандл pipeline и паспорт кредитной модели.
 - `src/credit_service/credit_features.py` — те же детерминированные признаки анкеты, что в
   исходном проекте.
+- `notebooks/train_credit_model.ipynb` — ноутбук для воспроизводимого запуска обучения.
 - `scripts/train_credit_model.py` — обучение без подбора гиперпараметров.
 - `tests/` — контрактные, smoke и детерминированные тесты.
 - `k8s/` — Deployment и Service для kind.

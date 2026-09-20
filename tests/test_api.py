@@ -58,9 +58,7 @@ def test_rejects_unexpected_feature(client: TestClient, valid_payload: dict[str,
 def test_rejects_unknown_application_field(
     client: TestClient, valid_payload: dict[str, object]
 ) -> None:
-    response = client.post(
-        "/v1/predict", json={"features": {**valid_payload["features"], "NOT_A_COLUMN": 20}}
-    )
+    response = client.post("/v1/predict", json={**valid_payload, "NOT_A_COLUMN": 20})
 
     assert response.status_code == 422
 

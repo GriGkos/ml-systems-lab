@@ -2,7 +2,7 @@ $ErrorActionPreference = 'Stop'
 
 $image = 'credit-scoring-service:2.0'
 $metadata = Get-Content -Raw artifacts/credit_scoring_metadata.json | ConvertFrom-Json
-$payload = @{ features = $metadata.example_input } | ConvertTo-Json -Depth 4 -Compress
+$payload = $metadata.example_input | ConvertTo-Json -Depth 4 -Compress
 
 docker build -t $image .
 kind load docker-image $image --name kind
