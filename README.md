@@ -1,8 +1,7 @@
 # Iris classification service
 
 FastAPI-сервис предсказывает вид ириса по четырём числовым признакам. Модель обучена на
-открытом датасете Iris из `scikit-learn`; это самостоятельная модель, не churn-сервис с
-семинара.
+открытом датасете Iris из `scikit-learn`; это самостоятельная модель, не churn-сервис с семинара.
 
 ## Проверка
 
@@ -44,7 +43,7 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/v1/predict -ContentTyp
 docker compose exec postgres psql -U iris -d iris -c "SELECT request_id, model_version, prediction, latency_ms, status_code FROM prediction_logs;"
 ```
 
-## Локальная разработка
+## Локальная разработка и настройки
 
 ```powershell
 uv sync
@@ -52,12 +51,17 @@ uv run python scripts/train_model.py
 uv run uvicorn iris_service.main:app --reload
 ```
 
-Переменная `DATABASE_URL` необязательна. Без неё сервис отвечает на запросы, но не пишет
-логи в PostgreSQL.
+Настройки читаются из переменных окружения или необязательного `.env`; шаблон находится в
+`.env.example`. Поддерживаются `POSTGRES_PASSWORD`, `MODEL_PATH` и `LOG_LEVEL`.
+`DATABASE_URL` необязательна: без неё сервис отвечает на запросы, но не пишет логи в PostgreSQL.
+Когда БД настроена, `/ready` дополнительно проверяет её доступность. Сбой журналирования не
+отменяет готовый ответ модели.
 
 ## Структура
 
-- `artifacts/` — joblib-бандл Pipeline и паспорт модели.
+- `artifacts/` — joblib-бандл Pipeline и паспорт модели: версия, дата, метрики, хеш данных,
+  зависимости и пример входа. Для первого ДЗ артефакт хранится в Git; в production-потоке его
+  нужно вынести в model registry.
 - `src/iris_service/` — исходный код FastAPI-сервиса.
 - `tests/` — контрактные, smoke и детерминированные тесты.
 - `k8s/` — Deployment и Service для kind.

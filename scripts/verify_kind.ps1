@@ -11,7 +11,7 @@ kubectl rollout status deployment/iris-service --timeout=180s
 kubectl get pods -l app=iris-service
 
 $portForward = Start-Job -ScriptBlock {
-    kubectl port-forward service/iris-service 8080:8000
+    kubectl port-forward service/iris-service 8080:80
 }
 
 try {

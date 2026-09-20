@@ -1,6 +1,5 @@
 """Loading and using the serialized sklearn model bundle."""
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -8,13 +7,12 @@ from typing import Any
 import joblib
 import pandas as pd
 
+from iris_service.settings import get_settings
+
 
 def default_artifact_path() -> Path:
-    """Resolve the artifact from an explicit path or the application's working directory."""
-    configured_path = os.getenv("MODEL_ARTIFACT_PATH")
-    if configured_path:
-        return Path(configured_path)
-    return Path.cwd() / "artifacts" / "iris_pipeline.joblib"
+    """Resolve the artifact path from the application's runtime settings."""
+    return get_settings().model_path
 
 
 @dataclass(frozen=True)

@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: iris
       POSTGRES_USER: iris
-      POSTGRES_PASSWORD: iris
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-iris}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U iris -d iris"]
       interval: 5s
@@ -16,7 +16,9 @@ services:
   api:
     build: .
     environment:
-      DATABASE_URL: postgresql+psycopg://iris:iris@postgres:5432/iris
+      DATABASE_URL: postgresql+psycopg://iris:${POSTGRES_PASSWORD:-iris}@postgres:5432/iris
+      MODEL_PATH: ${MODEL_PATH:-artifacts/iris_pipeline.joblib}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
     ports:
       - "8000:8000"
     depends_on:

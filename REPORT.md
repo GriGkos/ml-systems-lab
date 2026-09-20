@@ -3,34 +3,33 @@
 ## Модель
 
 Сервис классифицирует вид ириса по четырём измерениям цветка: длине и ширине чашелистика,
-длине и ширине лепестка. Артефакт состоит из `sklearn.pipeline.Pipeline` и паспорта модели
-с версией и порядком признаков.
-
-## Чекпоинты
-
-Перед сдачей сюда будут добавлены реальные скриншоты:
-
-1. `uv run pytest` с зелёным результатом;
-2. `SELECT` из таблицы `prediction_logs` после запроса к API;
-3. `kubectl get pods` с двумя репликами и ответ `/v1/predict` через port-forward;
-4. экран `k9s` с подами сервиса.
+длине и ширине лепестка. Артефакт содержит `sklearn.pipeline.Pipeline` с нормализацией и
+классификатором, а также паспорт с версией, датой обучения, метрикой, хешем датасета,
+зависимостями и примером корректного входа.
 
 ## Выполненные проверки
 
-- `uv run pytest`: 7 passed.
-- Compose: запрос с `request_id=compose-final-001` вернул `setosa`; строка появилась в
-  `prediction_logs` с версией `1.0.0`, задержкой `11.21 ms` и кодом ответа `200`.
-- kind: Deployment `iris-service` развёрнут в двух репликах `Running`; запрос через
-  `kubectl port-forward service/iris-service 8080:8000` с `request_id=k8s-final-001` вернул
-  `setosa`.
+- `uv run pytest` — **9 passed**.
+- `docker compose up -d --build` — `/health` и `/ready` вернули `200`.
+- Compose: запрос с `request_id=compose-lecture-final-001` вернул `setosa`; строка появилась в
+  `prediction_logs` с `model_version=1.0.0` и `status_code=200`.
+- kind: Deployment `iris-service` развёрнут в двух репликах `Running`; Service использует
+  `80 → 8000`; запрос через `kubectl port-forward service/iris-service 8080:80` с
+  `request_id=k8s-lecture-final-001` вернул `setosa`.
 
-Скриншоты пока не вставлены: их нужно снять с фактического терминала и k9s перед сдачей.
+## Скриншоты перед сдачей
+
+Нужно вручную добавить реальные скриншоты фактического терминала и k9s:
+
+1. `uv run pytest` с зелёным результатом;
+2. `SELECT` из `prediction_logs` после запроса к API;
+3. `kubectl get pods` с двумя репликами и ответ `/v1/predict` через port-forward;
+4. экран `k9s` с подами сервиса.
 
 ## Журнал проблем
 
-- Подготовка окружения: Docker Desktop не был запущен; после запуска `docker info` и
-  `kind create cluster` отработали успешно.
-- PATH после установки `kind` и `k9s` обновился только в новом терминале. Решение: закрыть
-  и открыть PowerShell/терминал VS Code заново.
-
-Новые проблемы и их решения будут добавлены сюда по мере выполнения проверок.
+- Docker Desktop сначала не был запущен; после запуска `docker info` и `kind create cluster`
+  отработали успешно.
+- После установки `kind` и `k9s` PATH обновился только в новом окне PowerShell/терминала VS Code.
+- Локальный путь содержит кириллицу, поэтому для editable-установки выбран `setuptools`; команда
+  `uv sync` и импорт пакета проходят корректно.

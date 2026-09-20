@@ -6,6 +6,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     Float,
+    Index,
     Integer,
     MetaData,
     String,
@@ -13,6 +14,7 @@ from sqlalchemy import (
     create_engine,
     func,
     insert,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.engine import Engine
@@ -30,6 +32,12 @@ prediction_logs = Table(
     Column("prediction", String(64), nullable=False),
     Column("latency_ms", Float, nullable=False),
     Column("status_code", Integer, nullable=False),
+)
+
+Index(
+    "ix_prediction_logs_created_at_model_version",
+    prediction_logs.c.created_at,
+    prediction_logs.c.model_version,
 )
 
 
@@ -64,6 +72,11 @@ class PredictionLogStore:
                     created_at=datetime.now().astimezone(),
                 )
             )
+
+    def ping(self) -> None:
+        """Raise an SQLAlchemy error when PostgreSQL cannot answer a simple query."""
+        with self.engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
 
     def dispose(self) -> None:
         self.engine.dispose()

@@ -1,29 +1,37 @@
 """FastAPI application for the Iris classifier."""
 
-import os
+import logging
 import time
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
+from sqlalchemy.exc import SQLAlchemyError
 
 from iris_service.database import PredictionLogStore
 from iris_service.model import ModelBundle, load_model_bundle
 from iris_service.schemas import HealthResponse, IrisFeatures, PredictionResponse
+from iris_service.settings import get_settings
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Load the model once and initialize PostgreSQL logging when configured."""
     app.state.model = load_model_bundle()
-    database_url = os.getenv("DATABASE_URL")
+    settings = get_settings()
     app.state.log_store = None
 
-    if database_url:
-        log_store = PredictionLogStore(database_url)
-        log_store.initialize()
+    if settings.database_url:
+        log_store = PredictionLogStore(settings.database_url)
         app.state.log_store = log_store
+        try:
+            log_store.initialize()
+        except SQLAlchemyError:
+            # The API may still serve a prediction; /ready will remain unavailable.
+            logger.exception("PostgreSQL is unavailable during service startup")
 
     yield
 
@@ -58,12 +66,29 @@ def health() -> HealthResponse:
 
 @app.get("/ready", response_model=HealthResponse)
 def ready() -> HealthResponse:
+    log_store: PredictionLogStore | None = app.state.log_store
+    if log_store is not None:
+        try:
+            log_store.ping()
+        except SQLAlchemyError as error:
+            logger.warning("Readiness check failed because PostgreSQL is unavailable")
+            raise HTTPException(status_code=503, detail="Database is unavailable") from error
     return health()
+
+
+def log_prediction_safely(log_store: PredictionLogStore, **values: object) -> None:
+    """Persist a successful prediction without delaying or breaking the API response."""
+    try:
+        log_store.log_prediction(**values)  # type: ignore[arg-type]
+    except SQLAlchemyError:
+        logger.exception("Could not write prediction log to PostgreSQL")
 
 
 @app.post("/v1/predict", response_model=PredictionResponse)
 def predict(
-    features: IrisFeatures, x_request_id: str | None = Header(default=None)
+    features: IrisFeatures,
+    background_tasks: BackgroundTasks,
+    x_request_id: str | None = Header(default=None),
 ) -> PredictionResponse:
     model = get_model()
     request_id = x_request_id or str(uuid.uuid4())
@@ -75,7 +100,9 @@ def predict(
 
     log_store: PredictionLogStore | None = app.state.log_store
     if log_store is not None:
-        log_store.log_prediction(
+        background_tasks.add_task(
+            log_prediction_safely,
+            log_store,
             request_id=request_id,
             model_version=model.version,
             features=values,
